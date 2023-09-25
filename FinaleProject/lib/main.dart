@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_test/Functions.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -26,89 +27,80 @@ class RegressionLapPrice extends StatefulWidget {
 }
 
 class _FilterScreenState extends State<RegressionLapPrice> {
-  int selectedCoreIValue = 3; // تعيين القيمة الافتراضية إلى 3
-  int selectedGenerationValue = 1;
-  int selectedFirstHDDTypeValue = 1;
-  int selectedFirstHDDSizeValue = 256;
-  int selectedSecondHDDTypeValue = 0;
-  int selectedSecondHDDSizeValue = 256;
-  int selectedRAMSizeValue = 4;
-  int selectedBatteryLifeValue = 1;
-  double selectedScreenSizeValue = 14;
-  int selectedScreenTypeValue = 0;
+  double selectedCoreIValue = 3.0; // تعيين القيمة الافتراضية إلى 3
+  double selectedGenerationValue = 1.0;
+  double selectedFirstHDDTypeValue = 0.5;
+  double selectedFirstHDDSizeValue = 256.0;
+  double selectedSecondHDDTypeValue = 0.0;
+  double selectedSecondHDDSizeValue = 0.0;
+  double selectedRAMSizeValue = 4.0;
+  double selectedBatteryLifeValue = 1.0;
+  double selectedScreenSizeValue = 14.0;
+  double selectedScreenTypeValue = 0.5;
   String selectedGCTypeValue = "مدمج";
   String selectedLaptopStateValue = 'Old';
 
-/*
-  void sendDataToApi(){
-     final Map<String, dynamic> data = {
-      'coreIValue': selectedCoreIValue,
-      'generationValue': selectedGenerationValue,
-      'firstHDDTypeValue': selectedFirstHDDTypeValue,
-      'firstHDDSizeValue': selectedFirstHDDSizeValue,
-      'secondHDDTypeValue': selectedSecondHDDTypeValue,
-      'secondHDDSizeValue': selectedSecondHDDSizeValue,
-      'ramSizeValue': selectedRAMSizeValue,
-      'batteryLifeValue': selectedBatteryLifeValue,
-      'screenSizeValue': selectedScreenSizeValue,
-      'screenTypeValue': selectedScreenTypeValue,
-      'gcTypeValue': selectedGCTypeValue,
-      'laptopStateValue': selectedLaptopStateValue,
-    };
-    
-    print(data);
-  }*/
-  Future<void> sendDataToApi() async {
-    print('im here');
-    // Create a map representing your data model
-    final Map<String, dynamic> data = {
-      'coreI': selectedCoreIValue,
-      'generation': selectedGenerationValue,
-      'firstHDDType': selectedFirstHDDTypeValue,
-      'firstHDDSize': selectedFirstHDDSizeValue,
-      'secondHDDType': selectedSecondHDDTypeValue,
-      'secondHDDSize': selectedSecondHDDSizeValue,
-      'ramSize': selectedRAMSizeValue,
-      'batteryLife': selectedBatteryLifeValue,
-      'screenSize': selectedScreenSizeValue,
-      'screenType': selectedScreenTypeValue,
-      'gcType': selectedGCTypeValue,
-      'laptopState': selectedLaptopStateValue,
-    };
+  // ignore: non_constant_identifier_names
+  data(coreI, Gen, FHT, FHS, SDT, SHS, RAM, BatLife,
+      SCSize, SCType, GPU, LaptopState) async {
+    try {
+      final response =
+          await http.post(Uri.http('127.0.0.1:8000', '/get_prediction', {
+        "coreI": "$coreI",
+        "generation": "$Gen",
+        "firstHDDType": "$FHT",
+        "firstHDDSize": "$FHS",
+        "secondHDDType": "$SDT",
+        "secondHDDSize": "$SHS",
+        "ramSize": "$RAM",
+        "batteryLife": "$BatLife",
+        "screenSize": "$SCSize",
+        "screenType": "$SCType",
+        "GPU": "$GPU",
+        "laptopState": "$LaptopState"
+      }));
 
-    final apiUrl =
-        'http://127.0.0.1:8000/submit-data/'; // Replace with your API endpoint
-    print(apiUrl);
-    final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(data),
+      showDialog(
+  context: context,
+  builder: (BuildContext context) {
+    return AlertDialog(
+      title: Text('التوقع', textDirection: TextDirection.rtl),
+      content: Text('التوقع هو: ${response.body.toString()}\$', textDirection: TextDirection.rtl),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text('موافق'),
+        ),
+      ],
     );
+  },
+);
 
-    if (response.statusCode == 200) {
-      // Successful API request
+        
+    } catch (e) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('تقديم البيانات'),
-            content: Text('تم تقديم البيانات بنجاح!'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('موافق'),
-              ),
-            ],
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: AlertDialog(
+              title: Text('خطأ'),
+              content: Text('هنالك خطأ بالاتصال بقاعدة البيانات حاول مرة أخرى',
+                  textDirection: TextDirection.rtl),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('موافق'),
+                ),
+              ],
+            ),
           );
         },
       );
-    } else {
-      // Handle API error here
-      print('API Error: ${response.statusCode}');
     }
   }
 
@@ -156,17 +148,20 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                         child: Column(
                           children: [
                             ListTile(
-                              title: Text('المعالج من فئة انتل:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text('المعالج من فئة انتل:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            DropdownButton<int>(
+                            DropdownButton<double>(
                               value: selectedCoreIValue,
-                              onChanged: (int? newValue) {
+                              onChanged: (double? newValue) {
                                 setState(() {
                                   selectedCoreIValue = newValue!;
                                 });
                               },
-                              items: <int>[3, 5, 7, 9].map((int value) {
-                                return DropdownMenuItem<int>(
+                              items: <double>[3.0, 5.0, 7.0, 9.0]
+                                  .map((double value) {
+                                return DropdownMenuItem<double>(
                                   value: value,
                                   child: Text(value.toString()),
                                 );
@@ -201,30 +196,32 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                         child: Column(
                           children: [
                             ListTile(
-                              title: Text('الجيل:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text('الجيل:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            DropdownButton<int>(
+                            DropdownButton<double>(
                               value: selectedGenerationValue,
-                              onChanged: (int? newValue) {
+                              onChanged: (double? newValue) {
                                 setState(() {
                                   selectedGenerationValue = newValue!;
                                 });
                               },
-                              items: <int>[
-                                1,
-                                2,
-                                3,
-                                4,
-                                6,
-                                7,
-                                8,
-                                9,
-                                10,
-                                11,
-                                12,
-                                13
-                              ].map((int value) {
-                                return DropdownMenuItem<int>(
+                              items: <double>[
+                                1.0,
+                                2.0,
+                                3.0,
+                                4.0,
+                                6.0,
+                                7.0,
+                                8.0,
+                                9.0,
+                                10.0,
+                                11.0,
+                                12.0,
+                                13.0
+                              ].map((double value) {
+                                return DropdownMenuItem<double>(
                                   value: value,
                                   child: Text(value.toString()),
                                 );
@@ -259,17 +256,19 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                         child: Column(
                           children: [
                             ListTile(
-                              title: Text('نوع الهارد الأول:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text('نوع الهارد الأول:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            DropdownButton<int>(
+                            DropdownButton<double>(
                               value: selectedFirstHDDTypeValue,
-                              onChanged: (int? newValue) {
+                              onChanged: (double? newValue) {
                                 setState(() {
                                   selectedFirstHDDTypeValue = newValue!;
                                 });
                               },
-                              items: <int>[1, 2].map((int value) {
-                                return DropdownMenuItem<int>(
+                              items: <double>[0.5, 1.0].map((double value) {
+                                return DropdownMenuItem<double>(
                                   value: value,
                                   child: Text(value == 1 ? 'HDD' : 'SSD'),
                                 );
@@ -304,17 +303,20 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                         child: Column(
                           children: [
                             ListTile(
-                              title: Text('حجم الهارد الأول:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text('حجم الهارد الأول:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            DropdownButton<int>(
+                            DropdownButton<double>(
                               value: selectedFirstHDDSizeValue,
-                              onChanged: (int? newValue) {
+                              onChanged: (double? newValue) {
                                 setState(() {
                                   selectedFirstHDDSizeValue = newValue!;
                                 });
                               },
-                              items: <int>[256, 512, 1000].map((int value) {
-                                return DropdownMenuItem<int>(
+                              items: <double>[256.0, 512.0, 1000.0]
+                                  .map((double value) {
+                                return DropdownMenuItem<double>(
                                   value: value,
                                   child: Text(value.toString()),
                                 );
@@ -349,22 +351,25 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                         child: Column(
                           children: [
                             ListTile(
-                              title: Text('نوع الهارد الثاني:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text('نوع الهارد الثاني:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            DropdownButton<int>(
+                            DropdownButton<double>(
                               value: selectedSecondHDDTypeValue,
-                              onChanged: (int? newValue) {
+                              onChanged: (double? newValue) {
                                 setState(() {
                                   selectedSecondHDDTypeValue = newValue!;
                                 });
                               },
-                              items: <int>[0, 1, 2].map((int value) {
-                                return DropdownMenuItem<int>(
+                              items:
+                                  <double>[0.0, 0.5, 1.0].map((double value) {
+                                return DropdownMenuItem<double>(
                                   value: value,
                                   child: Text(
                                     value == 0
                                         ? 'NONE'
-                                        : (value == 1 ? 'HDD' : 'SSD'),
+                                        : (value == 0.5 ? 'HDD' : 'SSD'),
                                   ),
                                 );
                               }).toList(),
@@ -398,17 +403,20 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                         child: Column(
                           children: [
                             ListTile(
-                              title: Text('حجم الهارد الثاني:', style: TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text('حجم الهارد الثاني:',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.bold)),
                             ),
-                            DropdownButton<int>(
+                            DropdownButton<double>(
                               value: selectedSecondHDDSizeValue,
-                              onChanged: (int? newValue) {
+                              onChanged: (double? newValue) {
                                 setState(() {
                                   selectedSecondHDDSizeValue = newValue!;
                                 });
                               },
-                              items: <int>[256, 512, 1000].map((int value) {
-                                return DropdownMenuItem<int>(
+                              items: <double>[0.0, 256.0, 512.0, 1000.0]
+                                  .map((double value) {
+                                return DropdownMenuItem<double>(
                                   value: value,
                                   child: Text(value.toString()),
                                 );
@@ -453,15 +461,16 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold)),
                               ),
-                              DropdownButton<int>(
+                              DropdownButton<double>(
                                 value: selectedRAMSizeValue,
-                                onChanged: (int? newValue) {
+                                onChanged: (double? newValue) {
                                   setState(() {
                                     selectedRAMSizeValue = newValue!;
                                   });
                                 },
-                                items: <int>[4, 8, 16, 32, 64].map((int value) {
-                                  return DropdownMenuItem<int>(
+                                items: <double>[4.0, 8.0, 16.0, 32.0, 64.0]
+                                    .map((double value) {
+                                  return DropdownMenuItem<double>(
                                     value: value,
                                     child: Text(value.toString()),
                                   );
@@ -500,15 +509,16 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold)),
                               ),
-                              DropdownButton<int>(
+                              DropdownButton<double>(
                                 value: selectedBatteryLifeValue,
-                                onChanged: (int? newValue) {
+                                onChanged: (double? newValue) {
                                   setState(() {
                                     selectedBatteryLifeValue = newValue!;
                                   });
                                 },
-                                items: <int>[1, 2, 4, 6, 8].map((int value) {
-                                  return DropdownMenuItem<int>(
+                                items: <double>[1.0, 2.0, 4.0, 6.0, 8.0]
+                                    .map((double value) {
+                                  return DropdownMenuItem<double>(
                                     value: value,
                                     child: Text(value.toString()),
                                   );
@@ -595,18 +605,18 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                                     style:
                                         TextStyle(fontWeight: FontWeight.bold)),
                               ),
-                              DropdownButton<int>(
+                              DropdownButton<double>(
                                 value: selectedScreenTypeValue,
-                                onChanged: (int? newValue) {
+                                onChanged: (double? newValue) {
                                   setState(() {
                                     selectedScreenTypeValue = newValue!;
                                   });
                                 },
-                                items: <int>[
-                                  0, // HD
-                                  1, // FHD
-                                ].map((int value) {
-                                  return DropdownMenuItem<int>(
+                                items: <double>[
+                                  0.5, // HD
+                                  1.0, // FHD
+                                ].map((double value) {
+                                  return DropdownMenuItem<double>(
                                     value: value,
                                     child: Text(value == 0 ? 'HD' : 'FHD'),
                                   );
@@ -738,15 +748,28 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                           ),
                         ),
                       ])),
-                  
                 ],
               )),
           Padding(
               padding: EdgeInsets.all(25.0), // تعيين الهوامش للجميع
               child: ElevatedButton(
                 onPressed: () {
-                  print('start');
-                  sendDataToApi();
+                  //sendDataToApi();
+                  
+                  data(
+                      selectedCoreIValue,
+                      selectedGenerationValue,
+                      selectedFirstHDDTypeValue,
+                      selectedFirstHDDSizeValue,
+                      selectedSecondHDDTypeValue,
+                      selectedSecondHDDSizeValue,
+                      selectedRAMSizeValue,
+                      selectedBatteryLifeValue,
+                      selectedScreenSizeValue,
+                      selectedScreenTypeValue,
+                      selectedGCTypeValue,
+                      selectedLaptopStateValue);
+
                 },
                 child: Text(
                   'تقديم البيانات',
