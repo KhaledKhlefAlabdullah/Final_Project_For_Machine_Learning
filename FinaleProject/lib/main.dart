@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_test/Functions.dart';
+
 import 'package:http/http.dart' as http;
 
 void main() {
@@ -618,7 +618,7 @@ class _FilterScreenState extends State<RegressionLapPrice> {
                                 ].map((double value) {
                                   return DropdownMenuItem<double>(
                                     value: value,
-                                    child: Text(value == 0 ? 'HD' : 'FHD'),
+                                    child: Text(value == 0.5 ? 'HD' : 'FHD'),
                                   );
                                 }).toList(),
                               ),

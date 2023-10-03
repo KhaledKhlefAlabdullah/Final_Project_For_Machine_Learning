@@ -12,12 +12,14 @@ def model_(coreI,generation,firstHDDType,firstHDDSize,secondHDDType,secondHDDSiz
     # Clining the gpu data
     if GPU == 'مدمج':
         GPU = float(GPU.replace("مدمج","50"))
+    else:
+        GPU = GPU.strip()
 
-    GPU = GPU.strip()
-    split_gpu = GPU.split(' ')
-    GPU = split_gpu[0]
-    
-    GPU = float(re.search(r'\d+', GPU).group())
+        split_gpu = GPU.split(' ')
+        
+        GPU = split_gpu[0]
+        
+        GPU = float(re.search(r'\d+', GPU).group())
 
     # Clean GC data 
     new=0
